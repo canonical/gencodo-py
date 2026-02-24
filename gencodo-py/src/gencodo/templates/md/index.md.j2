@@ -1,0 +1,25 @@
+# CLI Reference
+
+Command-line interface reference for **{{ appname }}**.
+
+This reference documentation is automatically generated from the command
+definitions and provides detailed information about each available command.
+
+## Available Commands
+
+{% for group_name, group_files in files | groupby('group_name') %}
+### {{ group_name }}
+
+{% for file in group_files %}
+- [{{ file.command_name }}]({{ file.filename }}) -- {{ file.short }}
+{% endfor %}
+
+{% endfor %}
+
+## Quick Reference Table
+
+| Command | Description |
+|---------|-------------|
+{% for file in files %}
+| [{{ file.command_name }}]({{ file.filename }}) | {{ file.short }} |
+{% endfor %}

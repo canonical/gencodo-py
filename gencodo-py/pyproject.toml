@@ -1,0 +1,47 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "gencodo-py"
+version = "0.1.0"
+description = "Generate CLI reference documentation from argparse-based applications using Jinja2 templates"
+readme = "README.md"
+license = "LGPL-3.0-only"
+requires-python = ">=3.10"
+authors = [
+    { name = "gencodo contributors" },
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Documentation",
+    "Topic :: Software Development :: Documentation",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Typing :: Typed",
+]
+dependencies = [
+    "jinja2>=3.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-cov",
+]
+
+[project.urls]
+Homepage = "https://github.com/canonical/gencodo-py"
+Issues = "https://github.com/canonical/gencodo-py/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/gencodo"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

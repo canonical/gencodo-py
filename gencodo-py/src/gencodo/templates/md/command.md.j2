@@ -1,0 +1,43 @@
+# {{ command_name }}
+
+{{ short }}
+
+**Usage:**
+
+```
+{{ synopsis }}
+```
+
+## Overview
+
+{{ long }}
+
+{% if flags %}
+## Options
+
+| Flag | Description | Default |
+|------|-------------|---------|
+{% for flag in flags %}
+| `{{ flag.name }}` | {{ flag.usage }} | {% if flag.default_value %}`{{ flag.default_value }}`{% endif %} |
+{% endfor %}
+
+{% endif %}
+{% if examples %}
+## Examples
+
+{% for example in examples %}
+**{{ example.info }}**
+
+```
+{{ example.usage }}
+```
+
+{% endfor %}
+{% endif %}
+{% if related_commands %}
+## See also
+
+{% for cmd in related_commands %}
+- [{{ cmd }}]({{ cmd }}.md)
+{% endfor %}
+{% endif %}
