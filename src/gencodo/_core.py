@@ -7,7 +7,7 @@ import importlib.resources
 import pathlib
 import re
 from collections.abc import Callable, Sequence
-from typing import Literal, TextIO
+from typing import Any, Literal, TextIO
 
 from gencodo._jinja_env import _make_jinja_env
 from gencodo._types import (
@@ -25,19 +25,29 @@ __all__ = [
 ]
 
 
-def _instantiate_command(command_class: type[Command]) -> Command:
+def _instantiate_command(
+    command_class: type[Command],
+    command_config: Any = None,
+) -> Command:
     """Instantiate a command class for parser introspection.
 
-    Tries command_class(None) first (craft_cli compatible),
-    then command_class() for simple classes.
+    If *command_config* is not None it is passed directly as the sole
+    constructor argument.  Otherwise the legacy behaviour is preserved:
+    tries command_class(None) first (craft_cli compatible), then
+    command_class() for simple classes.
     """
+    if command_config is not None:
+        return command_class(command_config)  # type: ignore[call-arg]
     try:
         return command_class(None)  # type: ignore[call-arg]
     except TypeError:
         return command_class()  # type: ignore[call-arg]
 
 
-def _extract_flags(command_class: type[Command]) -> list[FlagInfo]:
+def _extract_flags(
+    command_class: type[Command],
+    command_config: Any = None,
+) -> list[FlagInfo]:
     """Extract optional flags from a command class as FlagInfo objects.
 
     Positional arguments and suppressed flags are excluded.
@@ -45,12 +55,13 @@ def _extract_flags(command_class: type[Command]) -> list[FlagInfo]:
 
     Args:
         command_class: A command class satisfying the Command protocol.
+        command_config: Optional configuration object passed to the command constructor.
 
     Returns:
         A list of FlagInfo objects for the command's optional flags.
     """
     parser = argparse.ArgumentParser(prog=command_class.name, add_help=False)
-    _instantiate_command(command_class).fill_parser(parser)
+    _instantiate_command(command_class, command_config).fill_parser(parser)
     flags: list[FlagInfo] = []
     for action in parser._actions:
         if not action.option_strings:
@@ -109,6 +120,7 @@ def _build_template_context(
     command_class: type[Command],
     appname: str,
     command_groups: Sequence[CommandGroup],
+    command_config: Any = None,
 ) -> dict[str, object]:
     """Build the complete Jinja2 template context dict for a command.
 
@@ -116,6 +128,7 @@ def _build_template_context(
         command_class: The command class to build context for.
         appname: The application name used in usage strings.
         command_groups: All command groups in the application.
+        command_config: Optional configuration object passed to the command constructor.
 
     Returns:
         A dict with keys: ref, command_name, short, long, synopsis,
@@ -136,7 +149,7 @@ def _build_template_context(
     parser = argparse.ArgumentParser(
         prog=f"{appname} {command_name}", add_help=False
     )
-    _instantiate_command(command_class).fill_parser(parser)
+    _instantiate_command(command_class, command_config).fill_parser(parser)
     raw_usage = parser.format_usage()
     synopsis = re.sub(r"^usage:\s*", "", raw_usage).strip()
 
@@ -145,7 +158,7 @@ def _build_template_context(
         for info, usage in command_class.examples
     ]
 
-    flags = _extract_flags(command_class)
+    flags = _extract_flags(command_class, command_config)
     related_commands = _infer_related(command_class, command_groups)
     heading_len = len(command_name)
     ref = command_name.replace("-", "_").replace(" ", "_")
@@ -170,6 +183,7 @@ def gen_docs(
     template: str,
     appname: str,
     command_groups: Sequence[CommandGroup],
+    command_config: Any = None,
 ) -> None:
     """Render documentation for a single command to a writer.
 
@@ -179,10 +193,13 @@ def gen_docs(
         template: A Jinja2 template string for the command page.
         appname: The application name used in usage strings.
         command_groups: All command groups (used for related commands).
+        command_config: Optional configuration object passed to command constructors.
     """
     env = _make_jinja_env()
     compiled = env.from_string(template)
-    context = _build_template_context(command_class, appname, command_groups)
+    context = _build_template_context(
+        command_class, appname, command_groups, command_config
+    )
     writer.write(compiled.render(context))
 
 
@@ -193,6 +210,7 @@ def gen_docs_tree(
     templates: TemplateInfo,
     file_prepender: Callable[[str], str] | None = None,
     file_extension: str = ".md",
+    command_config: Any = None,
 ) -> list[str]:
     """Generate a documentation tree for all non-hidden commands.
 
@@ -205,6 +223,7 @@ def gen_docs_tree(
         templates: Template configuration for index and command pages.
         file_prepender: Optional callable returning a string to prepend to each file.
         file_extension: File extension for command pages (default: ".md").
+        command_config: Optional configuration object passed to command constructors.
 
     Returns:
         A list of generated command filenames (not including the index).
@@ -224,7 +243,9 @@ def gen_docs_tree(
             if cmd.hidden:
                 continue
             filename = cmd.name.replace(" ", "-") + file_extension
-            context = _build_template_context(cmd, appname, command_groups)
+            context = _build_template_context(
+                cmd, appname, command_groups, command_config
+            )
             content = compiled_cmd.render(context)
             if file_prepender is not None:
                 content = file_prepender(filename) + content
