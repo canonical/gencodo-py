@@ -1,3 +1,18 @@
-.claude/
-.pytest_cache/
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+*.egg
+dist/
+build/
+
+# Virtual environments
 .venv/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Tools
+.claude/
