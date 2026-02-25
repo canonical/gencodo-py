@@ -116,7 +116,7 @@ class SuppressedFlagCommand:
 
 
 class NoArgCommand:
-    """A command that takes no constructor argument (simple class)."""
+    """A command with a simple constructor (optional config)."""
 
     name = "simple"
     help_msg = "A simple command"
@@ -124,6 +124,9 @@ class NoArgCommand:
     hidden = False
     examples = []
     related_commands = None
+
+    def __init__(self, config=None):
+        self.config = config
 
     def fill_parser(self, parser: argparse.ArgumentParser) -> None:
         parser.add_argument("--flag", help="A flag", default="val")

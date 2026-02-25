@@ -5,10 +5,11 @@ from __future__ import annotations
 import argparse
 import dataclasses
 from collections.abc import Sequence
-from typing import NamedTuple, Protocol, runtime_checkable
+from typing import Any, NamedTuple, Protocol, runtime_checkable
 
 __all__ = [
     "Command",
+    "CommandClass",
     "CommandGroup",
     "ExampleInfo",
     "FlagInfo",
@@ -18,27 +19,42 @@ __all__ = [
 
 @runtime_checkable
 class Command(Protocol):
-    """Protocol that any CLI command class must satisfy.
+    """Structural type for an instantiated command.
 
-    Any class with these attributes and methods can be used with gencodo
-    via structural subtyping -- no inheritance required.
+    Only attributes guaranteed by the base command interface belong here.
+    Extension attributes (``overview``, ``examples``, ``related_commands``)
+    are accessed via :func:`getattr` inside gencodo's rendering code.
     """
 
     name: str
     """The command name as invoked on the command line."""
     help_msg: str
     """Short one-line help string."""
-    overview: str
-    """Longer description of the command (may be multi-line)."""
     hidden: bool
     """Whether this command should be excluded from generated documentation."""
-    examples: list[tuple[str, str]]
-    """List of (description, command_string) example pairs."""
-    related_commands: list[str] | None
-    """Explicit list of related command names, or None to infer from siblings."""
 
     def fill_parser(self, parser: argparse.ArgumentParser) -> None:
         """Add command-specific arguments to the parser."""
+        ...
+
+
+@runtime_checkable
+class CommandClass(Protocol):
+    """Structural type for a command *class* (factory).
+
+    Any class whose instances satisfy :class:`Command` and that exposes
+    the required class-level attributes can be used with gencodo via
+    structural subtyping -- no inheritance required.
+    """
+
+    name: str
+    """The command name as invoked on the command line."""
+    help_msg: str
+    """Short one-line help string."""
+    hidden: bool
+    """Whether this command should be excluded from generated documentation."""
+
+    def __call__(self, config: Any) -> Command:  # noqa: D102
         ...
 
 
@@ -47,7 +63,7 @@ class CommandGroup(NamedTuple):
 
     name: str
     """Human-readable group name."""
-    commands: Sequence[type[Command]]
+    commands: Sequence[CommandClass]
     """Command classes in this group."""
 
 

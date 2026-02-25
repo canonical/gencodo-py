@@ -11,7 +11,7 @@ from typing import Any, Literal, TextIO
 
 from gencodo._jinja_env import _make_jinja_env
 from gencodo._types import (
-    Command,
+    CommandClass,
     CommandGroup,
     ExampleInfo,
     FlagInfo,
@@ -26,9 +26,9 @@ __all__ = [
 
 
 def _instantiate_command(
-    command_class: type[Command],
+    command_class: CommandClass,
     command_config: Any = None,
-) -> Command:
+) -> Any:
     """Instantiate a command class for parser introspection.
 
     If *command_config* is not None it is passed directly as the sole
@@ -45,7 +45,7 @@ def _instantiate_command(
 
 
 def _extract_flags(
-    command_class: type[Command],
+    command_class: CommandClass,
     command_config: Any = None,
 ) -> list[FlagInfo]:
     """Extract optional flags from a command class as FlagInfo objects.
@@ -79,7 +79,7 @@ def _extract_flags(
 
 
 def _infer_related(
-    command_class: type[Command],
+    command_class: CommandClass,
     command_groups: Sequence[CommandGroup],
 ) -> list[str]:
     """Determine the list of related command names for a command.
@@ -97,14 +97,15 @@ def _infer_related(
     Raises:
         ValueError: If an explicit related command name is not found.
     """
-    if command_class.related_commands is not None:
+    explicit: list[str] | None = getattr(command_class, "related_commands", None)
+    if explicit is not None:
         all_names = {c.name for g in command_groups for c in g.commands}
-        for name in command_class.related_commands:
+        for name in explicit:
             if name not in all_names:
                 raise ValueError(
                     f"related command {name!r} not found in command_groups"
                 )
-        return list(command_class.related_commands)
+        return list(explicit)
     for group in command_groups:
         if command_class in group.commands:
             siblings = [
@@ -117,7 +118,7 @@ def _infer_related(
 
 
 def _build_template_context(
-    command_class: type[Command],
+    command_class: CommandClass,
     appname: str,
     command_groups: Sequence[CommandGroup],
     command_config: Any = None,
@@ -144,7 +145,8 @@ def _build_template_context(
     if not short:
         raise ValueError("short (help_msg) must not be empty")
 
-    long = (command_class.overview or "").strip()
+    overview: str = getattr(command_class, "overview", "")
+    long = (overview or "").strip()
 
     parser = argparse.ArgumentParser(
         prog=f"{appname} {command_name}", add_help=False
@@ -153,9 +155,10 @@ def _build_template_context(
     raw_usage = parser.format_usage()
     synopsis = re.sub(r"^usage:\s*", "", raw_usage).strip()
 
+    raw_examples: list[tuple[str, str]] = getattr(command_class, "examples", [])
     examples = [
         ExampleInfo(info=info, usage=usage)
-        for info, usage in command_class.examples
+        for info, usage in raw_examples
     ]
 
     flags = _extract_flags(command_class, command_config)
@@ -178,7 +181,7 @@ def _build_template_context(
 
 
 def gen_docs(
-    command_class: type[Command],
+    command_class: CommandClass,
     writer: TextIO,
     template: str,
     appname: str,

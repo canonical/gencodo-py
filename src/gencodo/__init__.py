@@ -3,6 +3,7 @@
 from gencodo._core import gen_docs, gen_docs_tree, get_bundled_templates
 from gencodo._types import (
     Command,
+    CommandClass,
     CommandGroup,
     ExampleInfo,
     FlagInfo,
@@ -11,6 +12,7 @@ from gencodo._types import (
 
 __all__ = [
     "Command",
+    "CommandClass",
     "CommandGroup",
     "ExampleInfo",
     "FlagInfo",
@@ -20,4 +22,4 @@ __all__ = [
     "get_bundled_templates",
 ]
 
-__version__ = "0.1.1"
+__version__ = "0.2.0"
