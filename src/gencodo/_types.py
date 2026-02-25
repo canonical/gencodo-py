@@ -2,10 +2,9 @@
 
 from __future__ import annotations
 
-import argparse
 import dataclasses
 from collections.abc import Sequence
-from typing import Any, NamedTuple, Protocol, runtime_checkable
+from typing import Any, NamedTuple, Protocol, TypeAlias, runtime_checkable
 
 __all__ = [
     "Command",
@@ -24,6 +23,13 @@ class Command(Protocol):
     Only attributes guaranteed by the base command interface belong here.
     Extension attributes (``overview``, ``examples``, ``related_commands``)
     are accessed via :func:`getattr` inside gencodo's rendering code.
+
+    Note: ``fill_parser`` is intentionally omitted.  E.g., ``craft_cli`` narrows
+    the parameter to a private ``_CustomArgumentParser`` subclass, which
+    makes the method signature structurally incompatible with
+    ``argparse.ArgumentParser``.  Since gencodo always calls
+    ``fill_parser`` on the result of :func:`_instantiate_command` (which
+    returns ``Any``), the attribute is not needed in the protocol.
     """
 
     name: str
@@ -33,29 +39,13 @@ class Command(Protocol):
     hidden: bool
     """Whether this command should be excluded from generated documentation."""
 
-    def fill_parser(self, parser: argparse.ArgumentParser) -> None:
-        """Add command-specific arguments to the parser."""
-        ...
 
+CommandClass: TypeAlias = type[Command]
+"""Type alias for a command *class* (factory).
 
-@runtime_checkable
-class CommandClass(Protocol):
-    """Structural type for a command *class* (factory).
-
-    Any class whose instances satisfy :class:`Command` and that exposes
-    the required class-level attributes can be used with gencodo via
-    structural subtyping -- no inheritance required.
-    """
-
-    name: str
-    """The command name as invoked on the command line."""
-    help_msg: str
-    """Short one-line help string."""
-    hidden: bool
-    """Whether this command should be excluded from generated documentation."""
-
-    def __call__(self, config: Any) -> Command:  # noqa: D102
-        ...
+Any class whose instances satisfy :class:`Command` can be used with
+gencodo via structural subtyping -- no inheritance required.
+"""
 
 
 class CommandGroup(NamedTuple):
@@ -63,7 +53,7 @@ class CommandGroup(NamedTuple):
 
     name: str
     """Human-readable group name."""
-    commands: Sequence[CommandClass]
+    commands: Sequence[type[Command]]
     """Command classes in this group."""
 
 

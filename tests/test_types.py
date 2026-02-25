@@ -95,7 +95,7 @@ def test_dataclasses_support_equality():
 
 
 def test_command_protocol_satisfied(command_groups):
-    """Helper command classes satisfy the CommandClass protocol."""
+    """Helper command classes satisfy the Command protocol."""
     for group in command_groups:
         for cmd_class in group.commands:
             assert isinstance(cmd_class, type)
@@ -103,49 +103,39 @@ def test_command_protocol_satisfied(command_groups):
             assert hasattr(cmd_class, "name")
             assert hasattr(cmd_class, "help_msg")
             assert hasattr(cmd_class, "hidden")
-            assert hasattr(cmd_class, "fill_parser")
 
 
-def test_command_class_protocol_is_runtime_checkable():
-    """CommandClass protocol supports isinstance checks."""
+def test_command_class_is_type_alias():
+    """CommandClass is a type alias for type[Command]."""
 
     class ValidClass:
         name = "valid"
         help_msg = "Valid command"
         hidden = False
 
-        def __call__(self, config=None):
-            return self
-
-    assert isinstance(ValidClass(), CommandClass)
+    # CommandClass is type[Command]; instances of ValidClass satisfy Command
+    assert isinstance(ValidClass(), Command)
+    assert isinstance(ValidClass, type)
 
 
 def test_command_protocol_is_runtime_checkable():
     """Command protocol supports isinstance checks on instances."""
-    import argparse
 
     class ValidInstance:
         name = "valid"
         help_msg = "Valid command"
         hidden = False
 
-        def fill_parser(self, parser: argparse.ArgumentParser) -> None:
-            pass
-
     assert isinstance(ValidInstance(), Command)
 
 
 def test_extension_attributes_not_in_command_protocol():
     """Command protocol does not require overview, examples, or related_commands."""
-    import argparse
 
     class MinimalCommand:
         name = "minimal"
         help_msg = "Minimal"
         hidden = False
-
-        def fill_parser(self, parser: argparse.ArgumentParser) -> None:
-            pass
 
     # Should satisfy Command without extension attributes
     assert isinstance(MinimalCommand(), Command)
