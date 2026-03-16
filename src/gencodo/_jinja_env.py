@@ -13,7 +13,7 @@ def _make_jinja_env() -> Environment:
         A Jinja2 Environment with custom filters for documentation rendering.
     """
     env = Environment(
-        autoescape=False,
+        autoescape=False,  # nosec B701 — outputs Markdown/RST, not HTML
         undefined=StrictUndefined,
         trim_blocks=True,
         lstrip_blocks=True,
