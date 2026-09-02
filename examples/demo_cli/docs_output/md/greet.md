@@ -5,8 +5,7 @@ Greet a specific person
 **Usage:**
 
 ```
-democli greet [--formal] [--enthusiasm ENTHUSIASM] [--suffix SUFFIX]
-                     name
+democli greet [--formal] [--enthusiasm ENTHUSIASM] [--suffix SUFFIX] name
 ```
 
 ## Overview
@@ -17,11 +16,17 @@ message suffix.
 
 This command demonstrates how to use positional and optional arguments.
 
+## Arguments
+
+| Argument | Description | Default |
+|----------|-------------|---------|
+| `name` | Name of the person to greet |  |
+
 ## Options
 
 | Flag | Description | Default |
 |------|-------------|---------|
-| `--formal` | Use formal greeting style | `False` |
+| `--formal` | Use formal greeting style |  |
 | `--enthusiasm` | Enthusiasm level (1-5) | `1` |
 | `--suffix` | Optional message suffix |  |
 

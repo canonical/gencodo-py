@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: LGPL-3.0-only
+# Copyright 2026 Canonical Ltd.
+
 """Tests for _extract_flags."""
 
 from gencodo._core import _extract_flags
@@ -39,7 +42,9 @@ def test_extract_flags_suppressed():
 def test_extract_flags_default_values():
     flags = _extract_flags(GreetCommand)
     flag_map = {f.name: f for f in flags}
-    assert flag_map["--formal"].default_value == "False"
+    # store_true flags have no meaningful default to document
+    assert flag_map["--formal"].default_value == ""
+    assert flag_map["--formal"].is_flag
     assert flag_map["--enthusiasm"].default_value == "1"
     assert flag_map["--suffix"].default_value == ""
 

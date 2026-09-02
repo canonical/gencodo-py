@@ -12,13 +12,23 @@
 
 {{ long }}
 
+{% if arguments %}
+## Arguments
+
+| Argument | Description | Default |
+|----------|-------------|---------|
+{% for argument in arguments %}
+| `{{ argument.name }}`{% if argument.nargs %} (`{{ argument.nargs }}`){% endif %} | {{ argument.usage }}{% if argument.choices %} Choices: {% for choice in argument.choices %}`{{ choice }}`{{ ", " if not loop.last }}{% endfor %}.{% endif %} | {% if argument.default_value %}`{{ argument.default_value }}`{% endif %} |
+{% endfor %}
+
+{% endif %}
 {% if flags %}
 ## Options
 
 | Flag | Description | Default |
 |------|-------------|---------|
 {% for flag in flags %}
-| `{{ flag.name }}` | {{ flag.usage }} | {% if flag.default_value %}`{{ flag.default_value }}`{% endif %} |
+| `{% if flag.short %}{{ flag.short }}, {% endif %}{{ flag.name }}{% if flag.metavar %} {{ flag.metavar }}{% endif %}` | {{ flag.usage }}{% if flag.required %} (required){% endif %}{% if flag.choices %} Choices: {% for choice in flag.choices %}`{{ choice }}`{{ ", " if not loop.last }}{% endfor %}.{% endif %} | {% if flag.default_value %}`{{ flag.default_value }}`{% endif %} |
 {% endfor %}
 
 {% endif %}

@@ -21,9 +21,7 @@ Options
 
 .. option:: --formal
 
-      Use formal farewell style
-
-   Default: ``False``
+   Use formal farewell style
 
 Examples
 --------

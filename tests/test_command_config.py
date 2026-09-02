@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: LGPL-3.0-only
+# Copyright 2026 Canonical Ltd.
+
 """Tests for the command_config parameter."""
 
 from __future__ import annotations
@@ -68,9 +71,7 @@ class TestGenDocsWithConfig:
 
 
 class TestGenDocsTreeWithConfig:
-    def test_gen_docs_tree_with_command_config(
-        self, tmp_path, cfg_groups, cfg_config
-    ):
+    def test_gen_docs_tree_with_command_config(self, tmp_path, cfg_groups, cfg_config):
         templates = TemplateInfo(
             index_file_name="index.md",
             index_template="# Index\n{% for f in files %}{{ f.command_name }}\n{% endfor %}",
@@ -87,9 +88,7 @@ class TestGenDocsTreeWithConfig:
         content = (tmp_path / "cfg-cmd.md").read_text(encoding="utf-8")
         assert "--name=gencodo" in content
 
-    def test_gen_docs_tree_without_config_unchanged(
-        self, tmp_path, command_groups
-    ):
+    def test_gen_docs_tree_without_config_unchanged(self, tmp_path, command_groups):
         """Existing callers without command_config still work."""
         templates = TemplateInfo(
             index_file_name="index.md",

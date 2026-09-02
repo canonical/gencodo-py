@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: LGPL-3.0-only
+# Copyright 2026 Canonical Ltd.
+
 """Shared fixtures with helper command classes satisfying the Command Protocol."""
 
 from __future__ import annotations
@@ -36,11 +39,15 @@ class GreetCommand:
     def fill_parser(self, parser: argparse.ArgumentParser) -> None:
         parser.add_argument("name", help="Name of the person to greet")
         parser.add_argument(
-            "--formal", action="store_true", default=False,
+            "--formal",
+            action="store_true",
+            default=False,
             help="Use formal greeting style",
         )
         parser.add_argument(
-            "--enthusiasm", type=int, default=1,
+            "--enthusiasm",
+            type=int,
+            default=1,
             help="Enthusiasm level (1-5)",
         )
         parser.add_argument("--suffix", default=None, help="Optional message suffix")
@@ -70,14 +77,16 @@ class FarewellCommand:
     help_msg = "Say goodbye"
     overview = "Prints a farewell message."
     hidden = False
-    examples = []
+    examples: list[tuple[str, str]] = []
     related_commands = None
 
     def __init__(self, config=None):
         self.config = config
 
     def fill_parser(self, parser: argparse.ArgumentParser) -> None:
-        parser.add_argument("--formal", action="store_true", default=False, help="Use formal style")
+        parser.add_argument(
+            "--formal", action="store_true", default=False, help="Use formal style"
+        )
 
 
 class HiddenCommand:
@@ -87,7 +96,7 @@ class HiddenCommand:
     help_msg = "Secret command"
     overview = "This should not appear in documentation."
     hidden = True
-    examples = []
+    examples: list[tuple[str, str]] = []
     related_commands = None
 
     def __init__(self, config=None):
@@ -104,7 +113,7 @@ class SuppressedFlagCommand:
     help_msg = "Test suppressed flags"
     overview = "Has one visible and one suppressed flag."
     hidden = False
-    examples = []
+    examples: list[tuple[str, str]] = []
     related_commands = None
 
     def __init__(self, config=None):
@@ -122,7 +131,7 @@ class NoArgCommand:
     help_msg = "A simple command"
     overview = "No constructor args needed."
     hidden = False
-    examples = []
+    examples: list[tuple[str, str]] = []
     related_commands = None
 
     def __init__(self, config=None):
@@ -139,7 +148,7 @@ class ExplicitRelatedCommand:
     help_msg = "Has explicit related commands"
     overview = "Tests explicit related_commands."
     hidden = False
-    examples = []
+    examples: list[tuple[str, str]] = []
     related_commands = ["greet", "hello"]
 
     def __init__(self, config=None):

@@ -9,8 +9,7 @@ Greet a specific person
 
 .. code-block:: bash
 
-   democli greet [--formal] [--enthusiasm ENTHUSIASM] [--suffix SUFFIX]
-                     name
+   democli greet [--formal] [--enthusiasm ENTHUSIASM] [--suffix SUFFIX] name
 
 Overview
 --------
@@ -21,24 +20,29 @@ message suffix.
 
 This command demonstrates how to use positional and optional arguments.
 
+Arguments
+---------
+
+``name``
+
+   Name of the person to greet
+
 Options
 -------
 
 .. option:: --formal
 
-      Use formal greeting style
-
-   Default: ``False``
+   Use formal greeting style
 
 .. option:: --enthusiasm
 
-      Enthusiasm level (1-5)
+   Enthusiasm level (1-5)
 
    Default: ``1``
 
 .. option:: --suffix
 
-      Optional message suffix
+   Optional message suffix
 
 Examples
 --------

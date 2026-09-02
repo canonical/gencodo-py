@@ -1,4 +1,6 @@
-#!/usr/bin/env python3
+# SPDX-License-Identifier: LGPL-3.0-only
+# Copyright 2026 Canonical Ltd.
+
 """Demonstrate gencodo usage with the demo CLI app.
 
 Run from the project root:
@@ -16,7 +18,10 @@ from gencodo import CommandGroup, gen_docs_tree, get_bundled_templates
 sys.path.insert(0, str(pathlib.Path(__file__).parent))
 from app import COMMAND_GROUPS
 
-OUTPUT_DIR = pathlib.Path(__file__).parent / "docs_output"
+# Tests override the destination by injecting OUTPUT_DIR_OVERRIDE into the globals.
+OUTPUT_DIR = pathlib.Path(
+    globals().get("OUTPUT_DIR_OVERRIDE") or pathlib.Path(__file__).parent / "docs_output"
+)
 
 
 def main() -> None:

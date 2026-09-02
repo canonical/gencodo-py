@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: LGPL-3.0-only
+# Copyright 2026 Canonical Ltd.
+
 """Tests for get_bundled_templates and bundled template rendering."""
 
 import io
@@ -60,9 +63,7 @@ def test_bundled_md_renders(command_groups):
 
 def test_bundled_rst_tree(tmp_path, command_groups):
     ti = get_bundled_templates("rst")
-    generated = gen_docs_tree(
-        "democli", command_groups, tmp_path, ti, file_extension=".rst"
-    )
+    generated = gen_docs_tree("democli", command_groups, tmp_path, ti, file_extension=".rst")
     assert "greet.rst" in generated
     assert (tmp_path / "index.rst").exists()
 

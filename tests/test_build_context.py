@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: LGPL-3.0-only
+# Copyright 2026 Canonical Ltd.
+
 """Tests for _build_template_context."""
 
 import pytest
@@ -16,10 +19,15 @@ def test_context_keys(command_groups):
         "long",
         "synopsis",
         "examples",
+        "arguments",
         "flags",
         "related_commands",
         "heading_len",
         "appname",
+        "hidden",
+        "common",
+        "group_name",
+        "filename",
     }
     assert set(ctx.keys()) == expected_keys
 

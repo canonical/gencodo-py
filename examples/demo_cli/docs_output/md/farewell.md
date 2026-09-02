@@ -16,7 +16,7 @@ Prints a farewell message. Supports formal and informal styles.
 
 | Flag | Description | Default |
 |------|-------------|---------|
-| `--formal` | Use formal farewell style | `False` |
+| `--formal` | Use formal farewell style |  |
 
 ## Examples
 

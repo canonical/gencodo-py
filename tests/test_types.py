@@ -1,11 +1,13 @@
+# SPDX-License-Identifier: LGPL-3.0-only
+# Copyright 2026 Canonical Ltd.
+
 """Unit tests for gencodo dataclasses and types."""
 
 import dataclasses
 
 import pytest
 
-from gencodo import Command, CommandClass, CommandGroup, ExampleInfo, FlagInfo, TemplateInfo
-
+from gencodo import Command, CommandGroup, ExampleInfo, FlagInfo, TemplateInfo
 
 # --- Tests for FlagInfo ---
 
@@ -86,9 +88,7 @@ def test_dataclasses_are_frozen(instance):
 def test_dataclasses_support_equality():
     assert FlagInfo("a", "b", "c") == FlagInfo("a", "b", "c")
     assert ExampleInfo("info", "usage") == ExampleInfo("info", "usage")
-    assert TemplateInfo("idx.md", "# Index", "# Cmd") == TemplateInfo(
-        "idx.md", "# Index", "# Cmd"
-    )
+    assert TemplateInfo("idx.md", "# Index", "# Cmd") == TemplateInfo("idx.md", "# Index", "# Cmd")
 
 
 # --- Tests for Command Protocol ---
@@ -145,7 +145,6 @@ def test_extension_attributes_not_in_command_protocol():
 
 
 def test_command_group_is_named_tuple():
-    from gencodo import CommandGroup
 
     cg = CommandGroup(name="Test", commands=[])
     assert cg.name == "Test"

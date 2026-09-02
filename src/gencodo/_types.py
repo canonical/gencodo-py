@@ -1,12 +1,16 @@
+# SPDX-License-Identifier: LGPL-3.0-only
+# Copyright 2026 Canonical Ltd.
+
 """Type definitions for gencodo: protocols, dataclasses, and named tuples."""
 
 from __future__ import annotations
 
 import dataclasses
 from collections.abc import Sequence
-from typing import Any, NamedTuple, Protocol, TypeAlias, runtime_checkable
+from typing import NamedTuple, Protocol, TypeAlias, runtime_checkable
 
 __all__ = [
+    "ArgumentInfo",
     "Command",
     "CommandClass",
     "CommandGroup",
@@ -21,8 +25,9 @@ class Command(Protocol):
     """Structural type for an instantiated command.
 
     Only attributes guaranteed by the base command interface belong here.
-    Extension attributes (``overview``, ``examples``, ``related_commands``)
-    are accessed via :func:`getattr` inside gencodo's rendering code.
+    Extension attributes (``overview``, ``examples``, ``related_commands``,
+    ``common``) are accessed via :func:`getattr` inside gencodo's rendering
+    code.
 
     Note: ``fill_parser`` is intentionally omitted.  E.g., ``craft_cli`` narrows
     the parameter to a private ``_CustomArgumentParser`` subclass, which
@@ -69,14 +74,48 @@ class ExampleInfo:
 
 @dataclasses.dataclass(frozen=True, slots=True, eq=True, order=False)
 class FlagInfo:
-    """Structured representation of a single CLI flag."""
+    """Structured representation of a single optional argument (flag)."""
 
     name: str
-    """The flag name as it appears on the command line (e.g., '--verbose')."""
+    """The longest option string, as shown in documentation (e.g., ``--verbose``)."""
     usage: str
     """One-line description of the flag's purpose."""
     default_value: str
-    """The default value shown in documentation."""
+    """The default value shown in documentation.
+
+    Empty when there is no meaningful default: ``None``, ``argparse.SUPPRESS``,
+    or a value-less action (see :attr:`is_flag`).
+    """
+    short: str = ""
+    """The shortest option string when it differs from :attr:`name` (e.g., ``-v``)."""
+    option_strings: tuple[str, ...] = ()
+    """All option strings registered for the argument, in declaration order."""
+    metavar: str = ""
+    """Placeholder for the value in usage text, or ``""`` for value-less flags."""
+    choices: tuple[str, ...] = ()
+    """Allowed values, if the argument was declared with ``choices``."""
+    required: bool = False
+    """Whether argparse marks the option as required."""
+    is_flag: bool = False
+    """True for value-less actions (``store_true``, ``store_false``, ``count``, ...)."""
+
+
+@dataclasses.dataclass(frozen=True, slots=True, eq=True, order=False)
+class ArgumentInfo:
+    """Structured representation of a positional argument."""
+
+    name: str
+    """The argument's display name: its ``metavar`` if set, else its ``dest``."""
+    usage: str
+    """One-line description of the argument."""
+    metavar: str = ""
+    """Placeholder used in the usage line, or ``""`` if none was declared."""
+    nargs: str = ""
+    """The ``nargs`` specification as a string (``""``, ``"?"``, ``"*"``, ``"+"``, ``"2"``, ...)."""
+    choices: tuple[str, ...] = ()
+    """Allowed values, if the argument was declared with ``choices``."""
+    default_value: str = ""
+    """The default value shown in documentation, or ``""``."""
 
 
 @dataclasses.dataclass(frozen=True, slots=True, eq=True, order=False)
@@ -95,4 +134,5 @@ class TemplateInfo:
         for field_name in ("index_file_name", "index_template", "command_template"):
             value = getattr(self, field_name)
             if not value.strip():
-                raise ValueError(f"TemplateInfo.{field_name} must not be empty")
+                msg = f"TemplateInfo.{field_name} must not be empty"
+                raise ValueError(msg)
