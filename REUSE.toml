@@ -1,0 +1,16 @@
+version = 1
+
+# Jinja2 templates: a comment header would be copied into every generated
+# document, so their license information lives here instead.
+[[annotations]]
+path = ["src/gencodo/templates/**", "src/gencodo/py.typed"]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2026 Canonical Ltd."
+SPDX-License-Identifier = "LGPL-3.0-only"
+
+# Generated output, lock file, verbatim license text, and JSON (no comments).
+[[annotations]]
+path = ["examples/demo_cli/docs_output/**", "uv.lock", "LICENSE", "renovate.json"]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2026 Canonical Ltd."
+SPDX-License-Identifier = "LGPL-3.0-only"
