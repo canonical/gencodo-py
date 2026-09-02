@@ -1,37 +1,77 @@
+# SPDX-License-Identifier: LGPL-3.0-only
+# Copyright 2026 Canonical Ltd.
+
+# Publishes gencodo-py whenever a vX.Y.Z tag is pushed (see `make release`):
+# checks that the tag matches __version__ and that CHANGELOG.md has a section
+# for it, builds, uploads to PyPI via trusted publishing (environment "pypi",
+# bound to this workflow file name), and creates the GitHub release with the
+# CHANGELOG section as notes and the distributions attached.
+
 name: Publish to PyPI
 
 on:
-  release:
-    types: [published]
+  push:
+    tags: ['v[0-9]+.[0-9]+.[0-9]+']
 
 permissions:
   contents: read
 
 jobs:
   build:
+    name: Verify and build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
-      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+      - name: Set up uv
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
         with:
-          python-version: "3.14"
+          python-version: '3.14'
+          # No cache: a release must build from pristine dependencies
+          enable-cache: false
 
-      - name: Install build dependencies
-        run: pip install build
+      - name: Check version and extract release notes
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          version="${TAG#v}"
+          if ! grep -qE "^__version__ = \"$version\"$" src/gencodo/__init__.py; then
+            echo "src/gencodo/__init__.py __version__ does not match tag $TAG"
+            exit 1
+          fi
+          awk -v ver="$version" '
+            $0 ~ "^## \\[" ver "\\] - [0-9]{4}-[0-9]{2}-[0-9]{2}$" { found = 1; next }
+            found && /^## \[/ { exit }
+            found { print }
+          ' CHANGELOG.md > release-notes.md
+          if [ ! -s release-notes.md ]; then
+            echo "CHANGELOG.md has no '## [$version] - YYYY-MM-DD' section; add one before tagging."
+            exit 1
+          fi
+          echo "Release notes:"
+          cat release-notes.md
 
-      - name: Build package
-        run: python -m build
+      - name: Test
+        run: |
+          uv sync --group dev --locked
+          uv run pytest -q
+
+      - name: Build
+        run: uv build
 
       - name: Upload build artifacts
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: dist
-          path: dist/
+          path: |
+            dist/
+            release-notes.md
 
   publish:
+    name: Publish to PyPI
     needs: build
     runs-on: ubuntu-latest
     environment: pypi
@@ -42,7 +82,32 @@ jobs:
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: dist
-          path: dist/
 
       - name: Publish to PyPI
-        uses: pypa/gh-action-pypi-publish@ed0c53931b1dc9bd32cbe73a98c7f6766f8a527e # release/v1
+        uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33 # v1.14.2
+        with:
+          packages-dir: dist/
+
+  release:
+    name: Create GitHub release
+    needs: publish
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download build artifacts
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: dist
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          gh release create "$TAG" \
+            --repo "$GITHUB_REPOSITORY" \
+            --title "$TAG" \
+            --notes-file release-notes.md \
+            --verify-tag \
+            dist/*
