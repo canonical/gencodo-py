@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: LGPL-3.0-only
+# Copyright 2026 Canonical Ltd.
+
 """Tests for gen_docs."""
 
 import io
@@ -54,3 +57,16 @@ def test_gen_docs_no_flags(command_groups):
     template = "flags: {{ flags | length }}"
     gen_docs(HelloCommand, writer, template, "democli", command_groups)
     assert writer.getvalue() == "flags: 0"
+
+
+def test_gen_docs_extra_filters(command_groups):
+    buf = io.StringIO()
+    gen_docs(
+        GreetCommand,
+        buf,
+        "{{ command_name | shout }}",
+        "democli",
+        command_groups,
+        extra_filters={"shout": lambda s: s.upper()},
+    )
+    assert buf.getvalue() == "GREET"

@@ -16,18 +16,43 @@ Overview
 
 {{ long }}
 
+{% if arguments %}
+Arguments
+---------
+
+{% for argument in arguments %}
+``{{ argument.name }}``{{ ' (``' ~ argument.nargs ~ '``)' if argument.nargs else '' }}
+
+   {{ argument.usage | indent(3, first=False) }}
+{% if argument.choices %}
+
+   Choices: {% for choice in argument.choices %}``{{ choice }}``{{ ", " if not loop.last }}{% endfor %}
+
+{% endif %}
+{% if argument.default_value %}
+
+   Default: ``{{ argument.default_value }}``
+{% endif %}
+
+{% endfor %}
+{% endif %}
 {% if flags %}
 Options
 -------
 
 {% for flag in flags %}
-.. option:: {{ flag.name }}
+.. option:: {{ flag.short ~ ', ' if flag.short else '' }}{{ flag.name }}{{ ' ' ~ flag.metavar if flag.metavar else '' }}
 
-   {{ flag.usage | indent(3) }}
-   {% if flag.default_value %}
+   {{ flag.usage | indent(3, first=False) }}{{ ' (required)' if flag.required else '' }}
+{% if flag.choices %}
+
+   Choices: {% for choice in flag.choices %}``{{ choice }}``{{ ", " if not loop.last }}{% endfor %}
+
+{% endif %}
+{% if flag.default_value %}
 
    Default: ``{{ flag.default_value }}``
-   {% endif %}
+{% endif %}
 
 {% endfor %}
 {% endif %}

@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: LGPL-3.0-only
+# Copyright 2026 Canonical Ltd.
+
 """Example CLI app using plain argparse classes (no framework dependency).
 
 Each command class satisfies the gencodo.Command protocol via duck typing.
@@ -6,6 +9,7 @@ Each command class satisfies the gencodo.Command protocol via duck typing.
 from __future__ import annotations
 
 import argparse
+from typing import Any
 
 
 class HelloCommand:
@@ -100,6 +104,6 @@ class FarewellCommand:
 
 
 # Command groups for use with gencodo
-COMMAND_GROUPS = [
+COMMAND_GROUPS: list[tuple[str, list[type[Any]]]] = [
     ("Greetings", [HelloCommand, GreetCommand, FarewellCommand]),
 ]

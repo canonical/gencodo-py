@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: LGPL-3.0-only
+# Copyright 2026 Canonical Ltd.
+
 """Tests for _infer_related."""
 
 import pytest
@@ -6,7 +9,6 @@ from gencodo import CommandGroup
 from gencodo._core import _infer_related
 from tests.conftest import (
     ExplicitRelatedCommand,
-    FarewellCommand,
     GreetCommand,
     HelloCommand,
     HiddenCommand,
@@ -40,6 +42,7 @@ def test_infer_related_explicit_invalid():
     groups = [
         CommandGroup(name="Test", commands=[GreetCommand, HelloCommand]),
     ]
+
     # Create a command class with an invalid related command
     class BadRelated:
         name = "bad"
