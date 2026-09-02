@@ -1,26 +1,30 @@
+# SPDX-License-Identifier: LGPL-3.0-only
+# Copyright 2026 Canonical Ltd.
+
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
 name = "gencodo-py"
-version = "0.3.0"
+dynamic = ["version"]
 description = "Generate CLI reference documentation from argparse-based applications using Jinja2 templates"
 readme = "README.md"
 license = "LGPL-3.0-only"
+license-files = ["LICENSE", "LICENSES/*"]
 requires-python = ">=3.10"
 authors = [
-    { name = "gencodo contributors" },
+    { name = "Canonical Ltd." },
 ]
 classifiers = [
-    "Development Status :: 3 - Alpha",
+    "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
-    "License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Topic :: Documentation",
     "Topic :: Software Development :: Documentation",
     "Topic :: Software Development :: Libraries :: Python Modules",
@@ -30,18 +34,107 @@ dependencies = [
     "jinja2>=3.0",
 ]
 
-[project.optional-dependencies]
-dev = [
-    "pytest>=7.0",
-    "pytest-cov",
-]
-
 [project.urls]
 Homepage = "https://github.com/canonical/gencodo-py"
+Changelog = "https://github.com/canonical/gencodo-py/blob/main/CHANGELOG.md"
 Issues = "https://github.com/canonical/gencodo-py/issues"
+
+[dependency-groups]
+dev = [
+    "mypy>=1.14",
+    "pytest>=9.0.3",
+    "pytest-cov>=6.0",
+    "reuse>=5.0",
+    "ruff>=0.12",
+]
+
+[tool.hatch.version]
+path = "src/gencodo/__init__.py"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/gencodo"]
 
+[tool.hatch.build.targets.sdist]
+exclude = ["/.github", "/.claude", "/examples/**/__pycache__"]
+
 [tool.pytest.ini_options]
+minversion = "7.0"
 testpaths = ["tests"]
+xfail_strict = true
+addopts = "--strict-markers"
+
+[tool.coverage.run]
+branch = true
+source = ["gencodo"]
+
+[tool.coverage.report]
+show_missing = true
+skip_empty = true
+fail_under = 95
+exclude_also = ["if TYPE_CHECKING:"]
+
+[tool.mypy]
+python_version = "3.10"
+strict = true
+warn_unreachable = true
+files = ["src", "tests", "examples"]
+
+[[tool.mypy.overrides]]
+module = ["tests.*", "app", "generate_docs"]
+disallow_untyped_defs = false
+disallow_incomplete_defs = false
+check_untyped_defs = true
+disable_error_code = ["no-untyped-call"]
+
+[tool.ruff]
+line-length = 99
+target-version = "py310"
+src = ["src", "tests"]
+extend-exclude = ["examples/demo_cli/docs_output"]
+
+[tool.ruff.format]
+quote-style = "double"
+line-ending = "lf"
+docstring-code-format = true
+
+[tool.ruff.lint]
+select = ["ALL"]
+ignore = [
+    "COM812",  # conflicts with the formatter
+    "D105",    # magic methods need no docstring
+    "D107",    # __init__ needs no docstring
+    "D203",    # incompatible with D211
+    "D213",    # incompatible with D212
+    "E501",    # the formatter handles line length
+    "ISC001",  # conflicts with the formatter
+    "PLR0913", # the public generators take many (keyword) parameters by design
+    "PLR0917", # same, positional for backward compatibility
+    "TC003",   # runtime imports keep `from __future__ import annotations` modules simple
+    "TRY003",  # long messages in exceptions are fine
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = [
+    "ANN",     # test functions need no annotations
+    "D",       # tests need no docstrings
+    "INP001",  # tests is a package via conftest
+    "PLR2004", # magic values are the point of assertions
+    "S101",    # assert is how pytest works
+    "SLF001",  # tests exercise private helpers
+    "RUF012",  # command classes carry list attributes by protocol design
+    "RUF043",  # plain-text match patterns are readable as they are
+    "EM101",   # short literal messages in test doubles are fine
+    "ARG002",  # fixtures may be requested for their side effects
+    "PLC0415", # local imports keep test doubles self-contained
+]
+"examples/**" = [
+    "ANN",     # keep the demo app light
+    "D1",      # demo classes need no docstrings
+    "INP001",  # scripts, not packages
+    "T201",    # the demo prints on purpose
+    "E402",    # sys.path tweak before import
+    "RUF012",  # command classes carry list attributes by protocol design
+]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"

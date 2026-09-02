@@ -1,0 +1,103 @@
+# SPDX-License-Identifier: LGPL-3.0-only
+# Copyright 2026 Canonical Ltd.
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Test (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.10', '3.11', '3.12', '3.13', '3.14']
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
+        with:
+          python-version: ${{ matrix.python-version }}
+          enable-cache: true
+
+      - name: Install
+        run: uv sync --group dev --locked
+
+      - name: Test
+        run: uv run pytest -q --cov=gencodo --cov-report=term-missing --cov-report=xml
+
+      - name: Coverage summary
+        run: |
+          {
+            echo "### Coverage (Python ${{ matrix.python-version }})"
+            echo
+            echo '```'
+            uv run coverage report
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload coverage report
+        if: matrix.python-version == '3.14'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: coverage
+          path: coverage.xml
+          retention-days: 14
+
+  lint:
+    name: Lint and type-check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
+        with:
+          python-version: '3.14'
+          enable-cache: true
+
+      - name: Install
+        run: uv sync --group dev --locked
+
+      - name: ruff
+        run: |
+          uv run ruff check src tests examples
+          uv run ruff format --check src tests examples
+
+      - name: mypy
+        run: uv run mypy
+
+      - name: Example output is current
+        run: |
+          uv run python examples/demo_cli/generate_docs.py
+          git diff --exit-code -- examples/
+
+      - name: Build
+        run: uv build
+
+  reuse:
+    name: REUSE compliance
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: reuse lint
+        uses: fsfe/reuse-action@676e2d560c9a403aa252096d99fcab3e1132b0f5 # v6.0.0
